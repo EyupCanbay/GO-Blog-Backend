@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	models "golang-blog-backend/models"
 	storage "golang-blog-backend/storage"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func CreatePost(w http.ResponseWriter, r *http.Request) {
@@ -46,4 +49,29 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+}
+
+func DeletePost(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Only DELETE metho is allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	idParam := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	for i, post := range storage.Posts {
+		if id == post.ID {
+			storage.Posts = append(storage.Posts[:i], storage.Posts[i+1:]...)
+			fmt.Println("[DELETE] Post deleted ,ID", id)
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+	}
+
+	http.Error(w, "Post not found", http.StatusNotFound)
+
 }
