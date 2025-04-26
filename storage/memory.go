@@ -1,4 +1,4 @@
-package stroga
+package storage
 
 import "golang-blog-backend/models"
 

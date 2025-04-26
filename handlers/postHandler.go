@@ -75,3 +75,37 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "Post not found", http.StatusNotFound)
 
 }
+
+func UpdatePost(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		http.Error(w, "Only PUT method is allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idParam := chi.URLParam(r, "id")
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	var updatedPost models.Post
+	err = json.NewDecoder(r.Body).Decode(&updatedPost)
+	if err != nil {
+		http.Error(w, "Invalid JSON post", http.StatusBadRequest)
+		return
+	}
+
+	for i, post := range storage.Posts {
+		if id == post.ID {
+			storage.Posts[i].Title = updatedPost.Title
+			storage.Posts[i].Body = updatedPost.Body
+			fmt.Println("[PUT] Post updated: ", storage.Posts[i])
+			json.NewEncoder(w).Encode(&storage.Posts[i])
+			return
+		}
+	}
+
+	http.Error(w, "Post not found", http.StatusNotFound)
+
+}
